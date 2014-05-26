@@ -1,6 +1,8 @@
 {
   "tracks": [
+    {"name": "M-607 / Colmenar", "file": "route_04.gpx", "date": 1399731720000},
     {"name": "Canal Manzanares", "file": "route_02.gpx", "date": 1399912980000},
-    {"name": "Rihonor de Castilla", "file": "route_01.gpx", "date": 1400421420000}
+    {"name": "Rihonor de Castilla", "file": "route_01.gpx", "date": 1400421420000},
+    {"name": "Madrid, entrenamiento vespertino", "file": "route_03.gpx", "date": 1400862420000}
   ]
 }
