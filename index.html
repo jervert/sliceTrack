@@ -11,7 +11,7 @@
 		<!--[if lt IE 9]>
 		<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
-		<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0-rc-1/pure-min.css" media="all">
+		<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure-min.css">
 		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.2/leaflet.css" media="all">
 		<link rel="stylesheet" href="css/styles.css" media="all">
     
@@ -30,16 +30,24 @@
     <h1>SliceTrack</h1>
     <p>Another track reading tool</p>
   </header>
-  <main>
-	  <div id="map"></div>
-    <div id="track-data">
-      
-    </div>
-  </main>
+  <div class="pure-g-r">
+    <nav id="track-list" class="pure-u-3-8"></nav>
+    <main id="track-content" class="pure-u-5-8">
+      <div id="map"></div>
+      <div id="track-data"></div>
+    </main>
+  </div>
 </div>
 
 <script type="text/template" id="tmpl-loading">
   <div class="loading"><img alt="" src="img/ajax-loader.gif"></div>
+</script>
+<script type="text/template" id="tmpl-track-list">
+<ul>
+  [[ _.each(tracks, function (track) { ]]
+  <li><a href="#" data-track-file="{{track.file}}">{{track.name}}</a></li>
+  [[ }); ]]
+</ul>
 </script>
 <script type="text/template" id="tmpl-track-data">
   <h2>{{name}}</h2>
@@ -52,7 +60,8 @@
 <script type="text/javascript">
   var $Q = {
    literals: null
-  };
+  },
+    map;
   
   $.extend(true, _DEFAULT_MARKER_OPTS, {
     startIconUrl: 'js/libs/leaflet-gpx-master/pin-icon-start.png',
@@ -86,24 +95,31 @@
     });
     
     $Q.literals = _.literals({culture: 'en'});
-
-    var map = L.map('map');
-    L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
-    }).addTo(map);
-    var gpx = 'data/route_02.gpx'; // URL to your GPX file or the GPX itself
-    new L.GPX(gpx, {async: true}).on('loaded', function(e) {
-      map.fitBounds(e.target.getBounds());
-      // https://github.com/mpetazzoni/leaflet-gpx
-      $('#track-data').html(_.tmpl('#tmpl-track-data', {
-        name: e.target.get_name(),
-        distance: e.target.get_distance(),
-        elevation: {
-          gain: e.target.get_elevation_gain()
-        }
-      }));
-    }).addTo(map);
     
+    $.get('data/tracks.json', function (data) {
+      $('#track-list').html(_.tmpl('#tmpl-track-list', data)).find('a').on('click.track', function (ev) {
+        ev.preventDefault();
+        if (!_.isEmpty(map)) {
+          map.remove();
+        }
+        map = L.map('map');
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
+        }).addTo(map);
+        var gpx = 'data/' + $(ev.currentTarget).data('track-file'); // URL to your GPX file or the GPX itself
+        new L.GPX(gpx, {async: true}).on('loaded', function(e) {
+          map.fitBounds(e.target.getBounds());
+          // https://github.com/mpetazzoni/leaflet-gpx
+          $('#track-data').html(_.tmpl('#tmpl-track-data', {
+            name: e.target.get_name(),
+            distance: e.target.get_distance(),
+            elevation: {
+              gain: e.target.get_elevation_gain()
+            }
+          }));
+        }).addTo(map);
+      });
+    });    
   }());
 </script>
 </body>
